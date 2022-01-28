@@ -79,7 +79,7 @@ def main(labelmap_path, model_path, tf_record_path, config_path, output_path):
                 category_index,
                 use_normalized_coordinates=True,
                 max_boxes_to_draw=200,
-                min_score_thresh=.30,
+                min_score_thresh=.50,
                 agnostic_mode=False)
         images.append(image_np_with_detections)
 
