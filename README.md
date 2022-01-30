@@ -141,20 +141,94 @@ python inference_video.py --labelmap_path label_map.pbtxt --model_path experimen
 ## Submission Template
 
 ### Project overview
-This section should contain a brief description of the project and what we are trying to achieve. Why is object detection such an important component of self driving car systems?
+Object detection is such an important component of self driving car systems, the final for self driving car is taking human to the destination savely and touch nothing. So self-driving car need to percceive objects around the vehicle. 
 
 ### Set up
-This section should contain a brief description of the steps to follow to run the code for this repository.
+For local setup if you have your own Nvidia GPU, you can use the provided Dockerfile and requirements in the [build directory](./build).
+
+Follow [the README therein](./build/README.md) to create a docker container and install all prerequisites.
 
 ### Dataset
 #### Dataset analysis
-This section should contain a quantitative and qualitative description of the dataset. It should include images, charts and other visualizations.
+Data are downloaded by using the following command:
+```
+python download_process.py --data_dir data/waymo/ --size 100
+```
+Use the following command to run the script once your function is implemented:
+```
+python create_splits.py --data-dir data --destination data/waymo/
+```
+
+The splits of the tfrecords are done following the proportion: 75% for training, 10% for validation and the other 15% for test. The data are splited in random which is executed by [create_splits.py](create_splits.py).
+
+The data Class Distribution and Pixel Value Analysis can be seem in Exploratory Data Analysis.ipynb
+
 #### Cross validation
-This section should detail the cross validation strategy and justify your approach.
+A spit of 75% training, 10% validation and 15% testing of files is used. This is selected to have the most proportion of training files, but also to avoid overfitting the data.
 
 ### Training
 #### Reference experiment
-This section should detail the results of the reference experiment. It should includes training metrics and a detailed explanation of the algorithm's performances.
+The configuration file for training is the one generated base on ./pipeline.config and placed at ./experiments/reference/pipeline_new.config.
+
+After training and evaluation, the results are as follows:
+
+![tensorboard with total_loss](experiments/reference/total_loss.png "tensorboard with total_loss")
+
+![tensorboard with classification_loss](experiments/reference/classification_loss.png "tensorboard with classification_loss")
+
+
+![tensorboard with localization_loss](experiments/reference/localization_loss.png "tensorboard with localization_loss")
+
+![tensorboard with regularization_loss](experiments/reference/regularization_loss.png "tensorboard with regularization_loss")
+
+![tensorboard with learning_rate](experiments/reference/learning_rate.png "tensorboard with learning_rate")
+
+
+At 24,000 steps, the reference model achieved the following metrics on the validation set:
+| mAP | mAP (large) | mAP (medium) | mAP (small) | mAP (@.5 IOU) | mAP (@.75 IOU) |
+|----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
+|  0.0216 | 0.0847 | 0.0907 | 0.0066 | 0.0476 | 0.0183 |
+
+
+| AR@1 | AR@10 | AR@100 | AR@100 (large) | AR@100 (medium) | AR@100 (small) |
+|------|------|------|------|------|------|
+| 0.0108 | 0.0380 | 0.0663 | 0.2900 | 0.2175 | 0.023 |
+
+
 
 #### Improve on the reference
-This section should highlight the different strategies you adopted to improve your model. It should contain relevant figures and details of your findings.
+#### experimence_1
+The configuration file at ./experiments/experimence_1/pipeline_new.config.
+
+Adding the following augmentations to the configuration file:
+
+- random_rgb_to_gray: This could be useful to not rely on colored images, such as dark situation (night). 
+- exponential_decay_learning_rate:  Using an exponential decay learning rate, rather than a cosine learning rate.
+- initial_learning_rate: Using 1e-3 to be initial learning rate rather than 0.04 which helps training converge. 
+
+
+After training and evaluation, the results are as follows:
+
+![tensorboard with total_loss](experiments/experience_1/total_loss.png "tensorboard with total_loss")
+
+![tensorboard with classification_loss](experiments/experience_1/classification_loss.png "tensorboard with classification_loss")
+
+
+![tensorboard with localization_loss](experiments/experience_1/localization_loss.png "tensorboard with localization_loss")
+
+![tensorboard with regularization_loss](experiments/experience_1/regularization_loss.png "tensorboard with regularization_loss")
+
+![tensorboard with learning_rate](experiments/experience_1/learning_rate.png "tensorboard with learning_rate")
+
+After 24,000 steps, the reference model achieved the following metrics on the validation set:
+| mAP | mAP (large) | mAP (medium) | mAP (small) | mAP (@.5 IOU) | mAP (@.75 IOU) |
+|----------- | ----------- | ----------- | ----------- | ----------- | ----------- |
+|  0.1823 | 0.7073 | 0.4833 | 0.0666 | 0.3707 | 0.1413 |
+
+
+| AR@1 | AR@10 | AR@100 | AR@100 (large) | AR@100 (medium) | AR@100 (small) |
+|------|------|------|------|------|------|
+| 0.0391 | 0.1702 | 0.2466 | 0.7505 | 0.5535 | 0.1371 |
+
+The following GIF, shows the model's inference:
+![inference](animation.gif "inference")
